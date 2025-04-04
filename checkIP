@@ -1,0 +1,40 @@
+#!/bin/bash
+
+ip_to_int() {
+    local IFS=.
+    read -r a b c d <<< "$1"
+    echo $(( (a * 16777216) + (b * 65536) + (c * 256) + d ))
+}
+
+check_ip_in_subnet() {
+    local ip=$1
+    local subnet=$2
+    local netmask=$3
+    
+    # Convert to integers
+    ip_int=$(ip_to_int "$ip")
+    subnet_int=$(ip_to_int "$subnet")
+    mask_int=$(ip_to_int "$netmask")
+    
+    # Calculate network and broadcast addresses
+    network=$((subnet_int & mask_int))
+    broadcast=$(((network | ~mask_int) & 0xFFFFFFFF))
+    
+    # Check if IP is in range
+    if [ "$ip_int" -ge "$network" ] && [ "$ip_int" -le "$broadcast" ]; then
+        return 0  # true
+    else
+        return 1  # false
+    fi
+}
+
+# Example usage
+ip="192.168.1.100"
+subnet="192.168.1.0"
+netmask="255.255.255.0"
+
+if check_ip_in_subnet "$ip" "$subnet" "$netmask"; then
+    echo "$ip is in subnet $subnet/$netmask"
+else
+    echo "$ip is not in subnet $subnet/$netmask"
+fi
