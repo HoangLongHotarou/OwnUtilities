@@ -1,10 +1,10 @@
-# Read from file
-$input = Get-Content -Path "subnet.txt" -First 1
-$subnet, $mask = $input.Split(',')
+# Read from file (PowerShell 7 compatible)
+$input = Get-Content -Path "subnet.txt" -TotalCount 1
+$subnet, $mask = $input -split ','
 
 # Convert IPs to integers
-$net = [int[]]$subnet.Split('.') | % { $sum = 0 } { $sum = ($sum * 256) + $_ } { $sum }
-$maskInt = [int[]]$mask.Split('.') | % { $sum = 0 } { $sum = ($sum * 256) + $_ } { $sum }
+$net = [int[]]($subnet -split '\.') | ForEach-Object -Begin { $sum = 0 } -Process { $sum = ($sum * 256) + $_ } -End { $sum }
+$maskInt = [int[]]($mask -split '\.') | ForEach-Object -Begin { $sum = 0 } -Process { $sum = ($sum * 256) + $_ } -End { $sum }
 
 # Calculate range
 $hostBits = [math]::Log(($maskInt -bxor 0xFFFFFFFF) + 1, 2)
